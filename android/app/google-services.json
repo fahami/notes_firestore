@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "932649317088",
+    "project_id": "notapp-multi",
+    "storage_bucket": "notapp-multi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932649317088:android:04975f5aadacf41e91d685",
+        "android_client_info": {
+          "package_name": "com.karyasa.notapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "932649317088-r0meom64lim72vq1i3qvb18dd83k02as.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7S-k6CWDLhIRcVolsnxnVjuvG6lBKRJQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "932649317088-r0meom64lim72vq1i3qvb18dd83k02as.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

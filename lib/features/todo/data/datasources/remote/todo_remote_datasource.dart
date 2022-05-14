@@ -1,16 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dartz/dartz.dart';
-import 'package:notes/core/error/failures.dart';
+import 'package:notes/core/error/exception.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
-import 'package:notes/features/todo/domain/entities/todo.dart';
 
 abstract class TodoRemoteDataSource {
-  Future<Either<Failure, List<TodoModel>>> getTodos();
-  Future<Either<Failure, TodoModel>> getTodoById(String id);
-  Future<Either<Failure, void>> addTodo(Todo todo);
-  Future<Either<Failure, void>> deleteTodo(Todo todo);
-  Future<Either<Failure, void>> updateTodo(Todo todo);
-  Future<Either<Failure, void>> deleteAllTodos();
+  Future<List<TodoModel>> getTodos();
+  Future<TodoModel> getTodoById(String id);
+  Future<void> addTodo(TodoModel todo);
+  Future<void> deleteTodo(TodoModel todo);
+  Future<void> updateTodo(TodoModel todo);
+  Future<void> deleteAllTodos();
 }
 
 class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
@@ -19,7 +17,7 @@ class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
   TodoRemoteDataSourceImpl(this.client);
 
   @override
-  Future<Either<Failure, List<TodoModel>>> getTodos() async {
+  Future<List<TodoModel>> getTodos() async {
     final db = client.collection('todos');
     final todos = await db.get().then((snapshot) => snapshot.docs.map((doc) {
           final todo = TodoModel.fromJson(doc.data());
@@ -27,20 +25,45 @@ class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
           return todo;
         }).toList());
     if (todos.isNotEmpty) {
-      return Right(todos);
+      return todos;
     } else {
-      return Left(ServerFailure());
+      throw ServerException('No todos found');
     }
   }
 
   @override
-  Future<Either<Failure, TodoModel>> getTodoById(String id) async {
+  Future<TodoModel> getTodoById(String id) async {
     final db = client.collection('todos');
     final todoById = await db.doc(id).get();
     if (todoById.exists) {
-      return Right(TodoModel.fromJson(todoById.data()!));
+      return TodoModel.fromJson(todoById.data()!);
     } else {
-      return Left(ServerFailure());
+      throw ServerException('No todo found');
     }
+  }
+
+  @override
+  Future<void> addTodo(TodoModel todo) {
+    final db = client.collection('todos');
+    return db.doc(todo.id).set(todo.toJson());
+  }
+
+  @override
+  Future<void> deleteAllTodos() {
+    final db = client.collection('todos');
+    return db.get().then(
+        (snapshot) => snapshot.docs.forEach((doc) => doc.reference.delete()));
+  }
+
+  @override
+  Future<void> deleteTodo(TodoModel todo) {
+    final db = client.collection('todos');
+    return db.doc(todo.id).delete();
+  }
+
+  @override
+  Future<void> updateTodo(TodoModel todo) {
+    final db = client.collection('todos');
+    return db.doc(todo.id).update(todo.toJson());
   }
 }

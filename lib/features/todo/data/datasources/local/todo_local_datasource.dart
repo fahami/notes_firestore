@@ -1,25 +1,27 @@
 import 'package:hive/hive.dart';
 import 'package:notes/core/error/exception.dart';
-import 'package:notes/features/todo/domain/entities/todo.dart';
+import 'package:notes/features/todo/data/model/todo_model.dart';
 
 abstract class TodoLocalDataSource {
-  List<Todo> getTodos();
-  Todo getTodoById(String id);
-  Future<void> cacheTodo(Todo todoToCache);
+  List<TodoModel> getTodos();
+  TodoModel getTodoById(String id);
+  Future<void> cacheTodo(TodoModel todoToCache);
+  Future<void> deleteTodo(TodoModel todo);
+  Future<void> deleteAllTodos();
 }
 
 class TodoLocalDataSourceImpl implements TodoLocalDataSource {
-  final Box<Todo> hiveBox;
+  final Box<TodoModel> hiveBox;
 
   TodoLocalDataSourceImpl(this.hiveBox);
 
   @override
-  Future<void> cacheTodo(Todo todoToCache) {
+  Future<void> cacheTodo(TodoModel todoToCache) {
     return hiveBox.put(todoToCache.id, todoToCache);
   }
 
   @override
-  List<Todo> getTodos() {
+  List<TodoModel> getTodos() {
     final todos = hiveBox.values.toList();
     if (todos.isNotEmpty) {
       return todos;
@@ -29,12 +31,22 @@ class TodoLocalDataSourceImpl implements TodoLocalDataSource {
   }
 
   @override
-  Todo getTodoById(String id) {
+  TodoModel getTodoById(String id) {
     final todo = hiveBox.get(id);
     if (todo != null) {
       return todo;
     } else {
       throw CacheException('No todo found');
     }
+  }
+
+  @override
+  Future<void> deleteAllTodos() async {
+    await hiveBox.clear();
+  }
+
+  @override
+  Future<void> deleteTodo(TodoModel todo) {
+    return hiveBox.delete(todo.id);
   }
 }

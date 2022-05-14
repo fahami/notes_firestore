@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:notes/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:notes/core/usecases/usecase.dart';
-import 'package:notes/features/todo/domain/entities/todo.dart';
+import 'package:notes/features/todo/data/model/todo_model.dart';
 import 'package:notes/features/todo/domain/repositories/todos_repository.dart';
 
 class DeleteTodo extends UseCase<void, Params> {
@@ -17,7 +17,7 @@ class DeleteTodo extends UseCase<void, Params> {
 }
 
 class Params extends Equatable {
-  final Todo todo;
+  final TodoModel todo;
 
   const Params(this.todo);
 

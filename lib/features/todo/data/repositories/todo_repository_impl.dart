@@ -1,7 +1,7 @@
 import 'package:notes/core/error/exception.dart';
 import 'package:notes/core/network/network_info.dart';
-import 'package:notes/features/todo/data/datasources/local/todo_local_datasource.dart';
-import 'package:notes/features/todo/data/datasources/remote/todo_remote_datasource.dart';
+import 'package:notes/features/todo/data/datasources/todo_local_datasource.dart';
+import 'package:notes/features/todo/data/datasources/todo_remote_datasource.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
 import 'package:notes/features/todo/domain/entities/todo.dart';
 import 'package:notes/core/error/failures.dart';
@@ -13,11 +13,11 @@ class TodoRepositoryImpl implements TodoRepository {
   final TodoRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
 
-  TodoRepositoryImpl(
-    this.localDataSource,
-    this.remoteDataSource,
-    this.networkInfo,
-  );
+  TodoRepositoryImpl({
+    required this.localDataSource,
+    required this.remoteDataSource,
+    required this.networkInfo,
+  });
 
   @override
   Future<Either<Failure, void>> addTodo(TodoModel todo) async {
@@ -102,8 +102,22 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
-  Future<Either<Failure, void>> updateTodo(Todo todo) {
-    // TODO: implement updateTodo
-    throw UnimplementedError();
+  Future<Either<Failure, void>> updateTodo(TodoModel todo) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.updateTodo(todo);
+        localDataSource.updateTodo(todo);
+        return const Right(null);
+      } on ServerException {
+        return Left(ServerFailure());
+      }
+    } else {
+      try {
+        localDataSource.cacheTodo(todo);
+        return const Right(null);
+      } on CacheException {
+        return Left(CacheFailure());
+      }
+    }
   }
 }

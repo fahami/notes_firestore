@@ -6,6 +6,7 @@ abstract class TodoLocalDataSource {
   List<TodoModel> getTodos();
   TodoModel getTodoById(String id);
   Future<void> cacheTodo(TodoModel todoToCache);
+  Future<void> updateTodo(TodoModel todo);
   Future<void> deleteTodo(TodoModel todo);
   Future<void> deleteAllTodos();
 }
@@ -48,5 +49,10 @@ class TodoLocalDataSourceImpl implements TodoLocalDataSource {
   @override
   Future<void> deleteTodo(TodoModel todo) {
     return hiveBox.delete(todo.id);
+  }
+
+  @override
+  Future<void> updateTodo(TodoModel todo) {
+    return hiveBox.put(todo.id, todo);
   }
 }

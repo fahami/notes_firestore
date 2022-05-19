@@ -12,13 +12,13 @@ abstract class TodoRemoteDataSource {
 }
 
 class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
-  final FirebaseFirestore client;
+  final FirebaseFirestore fireStore;
 
-  TodoRemoteDataSourceImpl(this.client);
+  TodoRemoteDataSourceImpl(this.fireStore);
 
   @override
   Future<List<TodoModel>> getTodos() async {
-    final db = client.collection('todos');
+    final db = fireStore.collection('todos');
     final todos = await db.get().then((snapshot) => snapshot.docs.map((doc) {
           final todo = TodoModel.fromJson(doc.data());
           todo.id = doc.id;
@@ -33,7 +33,7 @@ class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
 
   @override
   Future<TodoModel> getTodoById(String id) async {
-    final db = client.collection('todos');
+    final db = fireStore.collection('todos');
     final todoById = await db.doc(id).get();
     if (todoById.exists) {
       return TodoModel.fromJson(todoById.data()!);
@@ -44,26 +44,26 @@ class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
 
   @override
   Future<void> addTodo(TodoModel todo) {
-    final db = client.collection('todos');
+    final db = fireStore.collection('todos');
     return db.doc(todo.id).set(todo.toJson());
   }
 
   @override
   Future<void> deleteAllTodos() {
-    final db = client.collection('todos');
+    final db = fireStore.collection('todos');
     return db.get().then(
         (snapshot) => snapshot.docs.forEach((doc) => doc.reference.delete()));
   }
 
   @override
   Future<void> deleteTodo(TodoModel todo) {
-    final db = client.collection('todos');
+    final db = fireStore.collection('todos');
     return db.doc(todo.id).delete();
   }
 
   @override
   Future<void> updateTodo(TodoModel todo) {
-    final db = client.collection('todos');
+    final db = fireStore.collection('todos');
     return db.doc(todo.id).update(todo.toJson());
   }
 }

@@ -1,8 +1,8 @@
 import 'package:notes/features/todo/domain/entities/color.dart';
 
 class ColorModel extends TodoColor {
-  const ColorModel({
-    required int id,
+  ColorModel({
+    required String id,
     required String colorType,
   }) : super(id, colorType);
 

@@ -120,4 +120,24 @@ class TodoRepositoryImpl implements TodoRepository {
       }
     }
   }
+
+  @override
+  Future<Either<Failure, Todo>> getTodoById(String id) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final todo = await remoteDataSource.getTodoById(id);
+        localDataSource.cacheTodo(todo);
+        return Right(todo);
+      } on ServerException {
+        return Left(ServerFailure());
+      }
+    } else {
+      try {
+        final todo = localDataSource.getTodoById(id);
+        return Right(todo);
+      } on CacheException {
+        return Left(CacheFailure());
+      }
+    }
+  }
 }

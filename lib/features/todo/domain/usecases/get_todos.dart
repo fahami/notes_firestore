@@ -11,6 +11,6 @@ class GetTodos extends UseCase<List<Todo>, NoParams> {
 
   @override
   Future<Either<Failure, List<Todo>>> call(NoParams params) async {
-    return await repository.getTodos();
+    return repository.getTodos();
   }
 }

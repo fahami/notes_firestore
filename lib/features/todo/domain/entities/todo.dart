@@ -1,10 +1,20 @@
 import 'package:equatable/equatable.dart';
+import 'package:hive/hive.dart';
+part 'todo.g.dart';
 
-class Todo extends Equatable {
+@HiveType(typeId: 0)
+class Todo extends HiveObject with EquatableMixin {
+  @HiveField(0)
   String id;
+  @HiveField(1)
   String title;
+  @HiveField(2)
   String isi;
+  @HiveField(3)
   int colorId;
+  @HiveField(4)
+  String userId;
+  @HiveField(5)
   DateTime reminder;
 
   Todo({
@@ -13,6 +23,7 @@ class Todo extends Equatable {
     required this.isi,
     required this.colorId,
     required this.reminder,
+    required this.userId,
   });
 
   @override
@@ -22,5 +33,6 @@ class Todo extends Equatable {
         isi,
         colorId,
         reminder,
+        userId,
       ];
 }

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import 'package:notes/core/error/exception.dart';
 import 'package:notes/features/todo/data/model/color_model.dart';

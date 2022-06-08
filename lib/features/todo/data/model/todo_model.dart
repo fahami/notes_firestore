@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:notes/features/todo/domain/entities/todo.dart';
 
 class TodoModel extends Todo {
@@ -6,27 +7,31 @@ class TodoModel extends Todo {
       required String title,
       required String isi,
       required int colorId,
-      required DateTime reminder})
+      required DateTime reminder,
+      required String userId})
       : super(
             id: id,
             title: title,
             isi: isi,
             colorId: colorId,
-            reminder: reminder);
+            reminder: reminder,
+            userId: userId);
 
   factory TodoModel.fromJson(Map<String, dynamic> json) => TodoModel(
-        id: json['id'],
+        id: json['id'] ?? '',
         title: json['title'],
         isi: json['isi'],
-        colorId: json['colorId'],
-        reminder: DateTime.parse(json['reminder']),
+        colorId: json['color_id'],
+        reminder: (json['reminder'] as Timestamp).toDate(),
+        userId: json['user_id'],
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
         'isi': isi,
-        'colorId': colorId,
+        'color_id': colorId,
         'reminder': reminder.toIso8601String(),
+        'user_id': userId,
       };
 }

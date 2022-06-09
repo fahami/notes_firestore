@@ -21,7 +21,8 @@ import 'package:notes/features/todo/domain/usecases/get_colors.dart';
 import 'package:notes/features/todo/domain/usecases/get_todo_by_id.dart';
 import 'package:notes/features/todo/domain/usecases/get_todos.dart';
 import 'package:notes/features/todo/domain/usecases/update_todo.dart';
-import 'package:notes/features/todo/presentation/bloc/note_bloc.dart';
+import 'package:notes/features/todo/presentation/bloc/color_bloc.dart';
+import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
 
 import 'features/todo/data/model/color_model.dart';
 
@@ -30,7 +31,7 @@ final sl = GetIt.instance;
 Future<void> init() async {
   // bloc
   sl.registerFactory(
-    () => NoteBloc(
+    () => TodoBloc(
       addTodo: sl(),
       deleteTodo: sl(),
       getTodos: sl(),
@@ -39,6 +40,8 @@ Future<void> init() async {
       updateTodo: sl(),
     ),
   );
+
+  sl.registerFactory(() => ColorBloc(getColors: sl()));
 
   // usecases
   sl.registerLazySingleton(() => GetTodos(sl()));

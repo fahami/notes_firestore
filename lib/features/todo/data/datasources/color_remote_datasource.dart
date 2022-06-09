@@ -6,7 +6,7 @@ abstract class ColorRemoteDataSource {
   Future<List<ColorModel>> getColors();
 }
 
-class ColorRemoteDataSourceImpl extends ColorRemoteDataSource {
+class ColorRemoteDataSourceImpl implements ColorRemoteDataSource {
   final FirebaseFirestore fireStore;
 
   ColorRemoteDataSourceImpl(this.fireStore);

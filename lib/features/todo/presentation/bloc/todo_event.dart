@@ -1,13 +1,13 @@
-part of 'note_bloc.dart';
+part of 'todo_bloc.dart';
 
-abstract class NoteEvent extends Equatable {
-  const NoteEvent();
+abstract class TodoEvent extends Equatable {
+  const TodoEvent();
 
   @override
   List<Object> get props => [];
 }
 
-class AddEvent extends NoteEvent {
+class AddEvent extends TodoEvent {
   final TodoModel todo;
 
   const AddEvent(this.todo);
@@ -16,7 +16,7 @@ class AddEvent extends NoteEvent {
   List<Object> get props => [todo];
 }
 
-class GetTodosEvent extends NoteEvent {
+class GetTodosEvent extends TodoEvent {
   final String userId;
 
   const GetTodosEvent(this.userId);
@@ -25,17 +25,16 @@ class GetTodosEvent extends NoteEvent {
   List<Object> get props => [userId];
 }
 
-class GetTodoByIdEvent extends NoteEvent {
-  final String userId;
+class GetTodoByIdEvent extends TodoEvent {
   final String todoId;
 
-  const GetTodoByIdEvent(this.userId, this.todoId);
+  const GetTodoByIdEvent(this.todoId);
 
   @override
-  List<Object> get props => [userId, todoId];
+  List<Object> get props => [todoId];
 }
 
-class UpdateTodoEvent extends NoteEvent {
+class UpdateTodoEvent extends TodoEvent {
   final String userId;
   final TodoModel todo;
 
@@ -45,7 +44,7 @@ class UpdateTodoEvent extends NoteEvent {
   List<Object> get props => [userId, todo];
 }
 
-class DeleteTodoEvent extends NoteEvent {
+class DeleteTodoEvent extends TodoEvent {
   final String userId;
   final TodoModel todo;
 
@@ -55,7 +54,7 @@ class DeleteTodoEvent extends NoteEvent {
   List<Object> get props => [userId, todo];
 }
 
-class DeleteAllTodoEvent extends NoteEvent {
+class DeleteAllTodoEvent extends TodoEvent {
   final String userId;
 
   const DeleteAllTodoEvent(this.userId);

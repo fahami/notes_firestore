@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hexcolor/hexcolor.dart';
 import 'package:notes/core/theme/color_theme.dart';
 import 'package:notes/core/theme/text_theme.dart';
 import 'package:notes/core/util/utils.dart';
+import 'package:notes/di.dart';
+import 'package:notes/features/todo/domain/usecases/get_todo_by_id.dart';
+import 'package:notes/features/todo/presentation/bloc/color_bloc.dart';
+import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart' as todo;
 import 'package:share_plus/share_plus.dart';
 
 class NoteDetailScreen extends StatefulWidget {
-  NoteDetailScreen({Key? key, this.id, this.isNew = false}) : super(key: key);
+  const NoteDetailScreen({Key? key, this.id, this.isNew = false})
+      : super(key: key);
   final String? id;
   final bool isNew;
 
@@ -57,6 +64,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.id);
     return Scaffold(
       backgroundColor: selectedColor,
       appBar: AppBar(
@@ -74,62 +82,84 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
           ),
         ],
       ),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                  hintText: "Judul",
-                  border: InputBorder.none,
-                  hintStyle: ThemeText.alternativeStyle.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 36,
-                      color: selectedColor.computeLuminance() > 0.5
-                          ? ThemeColor.typography
-                          : Colors.white)),
-              style: ThemeText.alternativeStyle.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 36,
-                  color: selectedColor.computeLuminance() > 0.5
-                      ? ThemeColor.typography
-                      : Colors.white),
-            ),
-            Text(
-              widget.isNew
-                  ? simpleDate(DateTime.now().toIso8601String())
-                  : "Selasa, 17 November 2022 • 320 Karakter",
-              style: ThemeText.captionStyle.copyWith(
-                  color: selectedColor.computeLuminance() > 0.5
-                      ? ThemeColor.typography
-                      : Colors.white),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView(
-                children: [
-                  TextFormField(
-                    controller: _contentController,
-                    style: ThemeText.captionStyle.copyWith(
-                        color: selectedColor.computeLuminance() > 0.5
-                            ? ThemeColor.typography
-                            : Colors.white),
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: "Tulis sesuatu...",
-                      hintStyle: ThemeText.captionStyle.copyWith(
+      body: BlocProvider(
+        create: (_) => sl<todo.TodoBloc>()
+          ..add(widget.isNew
+              ? todo.GetTodosEvent("GrFpmSJo9cUAQb537DE4")
+              : todo.GetTodoByIdEvent(widget.id ?? '')),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: BlocBuilder<todo.TodoBloc, todo.TodoState>(
+            builder: (context, state) {
+              if (state is todo.Loaded) {
+                if (!widget.isNew) {
+                  _titleController.text = state.todos!.first.title;
+                  _contentController.text = state.todos!.first.isi;
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                          hintText: "Judul",
+                          border: InputBorder.none,
+                          hintStyle: ThemeText.alternativeStyle.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 36,
+                              color: selectedColor.computeLuminance() > 0.5
+                                  ? ThemeColor.typography
+                                  : Colors.white)),
+                      style: ThemeText.alternativeStyle.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 36,
                           color: selectedColor.computeLuminance() > 0.5
                               ? ThemeColor.typography
                               : Colors.white),
                     ),
-                  )
-                ],
-              ),
-            )
-          ],
+                    Text(
+                      widget.isNew
+                          ? simpleDate(DateTime.now().toIso8601String())
+                          : "${simpleDate(state.todos!.first.reminder.toIso8601String())} • 320 Karakter",
+                      style: ThemeText.captionStyle.copyWith(
+                          color: selectedColor.computeLuminance() > 0.5
+                              ? ThemeColor.typography
+                              : Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          TextFormField(
+                            controller: _contentController,
+                            style: ThemeText.captionStyle.copyWith(
+                                color: selectedColor.computeLuminance() > 0.5
+                                    ? ThemeColor.typography
+                                    : Colors.white),
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: "Tulis sesuatu...",
+                              hintStyle: ThemeText.captionStyle.copyWith(
+                                  color: selectedColor.computeLuminance() > 0.5
+                                      ? ThemeColor.typography
+                                      : Colors.white),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                );
+              } else if (state is todo.Error) {
+                return const Text("Error");
+              } else if (state is todo.Loading) {
+                return const Center(child: CircularProgressIndicator());
+              } else {
+                return const Text("Initial");
+              }
+            },
+          ),
         ),
       ),
       bottomNavigationBar: Container(
@@ -250,35 +280,53 @@ class BuildSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: colors.length,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: InkWell(
-              child: Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: colors[index],
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors[index].computeLuminance() > 0.5
-                        ? ThemeColor.disabled
-                        : Colors.white,
-                    width: 2,
-                  ),
-                ),
-              ),
-              onTap: () => selectColor(colors.elementAt(index)),
-            ),
-          );
-        },
+    return BlocProvider(
+      create: (context) => sl<ColorBloc>()..add(const GetColors()),
+      child: SizedBox(
+        height: 48,
+        child: BlocBuilder<ColorBloc, ColorState>(
+          builder: (context, state) {
+            if (state is Loaded) {
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: state.colors.length,
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.only(right: 16),
+                    child: InkWell(
+                      child: Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: HexColor(state.colors[index].colorType),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: HexColor(state.colors[index].colorType)
+                                        .computeLuminance() >
+                                    0.5
+                                ? ThemeColor.disabled
+                                : Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      onTap: () =>
+                          selectColor(HexColor(state.colors[index].colorType)),
+                    ),
+                  );
+                },
+              );
+            } else if (state is Error) {
+              return const Text("Error");
+            } else if (state is Loading) {
+              return CircularProgressIndicator();
+            } else {
+              return const Text("Initial");
+            }
+          },
+        ),
       ),
     );
   }

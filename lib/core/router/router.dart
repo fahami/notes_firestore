@@ -32,7 +32,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/note/new',
-        builder: (context, state) => NoteDetailScreen(isNew: true),
+        builder: (context, state) => const NoteDetailScreen(isNew: true),
       ),
       GoRoute(
         path: '/note/:id',

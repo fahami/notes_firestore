@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:notes/core/network/network_info.dart';
 import 'package:notes/features/todo/data/datasources/color_local_datasource.dart';
@@ -85,8 +86,9 @@ Future<void> init() async {
   Hive.registerAdapter(ColorAdapter());
   final Box<TodoModel> todoBox = await Hive.openBox<TodoModel>('todos');
   final Box<ColorModel> colorBox = await Hive.openBox<ColorModel>('colors');
+
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-  sl.registerLazySingleton(() => InternetConnectionChecker());
+  sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton(() => firestore);
   sl.registerLazySingleton(() => todoBox);
   sl.registerLazySingleton(() => colorBox);

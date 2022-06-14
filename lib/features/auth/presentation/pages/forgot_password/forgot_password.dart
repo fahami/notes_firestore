@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notes/core/theme/color_theme.dart';
@@ -8,6 +9,7 @@ import 'package:notes/features/todo/presentation/widgets/custom_dialog.dart';
 class ForgotPasswordScreen extends StatelessWidget {
   ForgotPasswordScreen({Key? key}) : super(key: key);
   final TextEditingController _emailController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -66,26 +68,31 @@ class ForgotPasswordScreen extends StatelessWidget {
                   child: CustomButton(
                     text: "Kirim",
                     onPressed: () async {
-                      await showCustomDialog(
-                              context,
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    color: ThemeColor.greenish,
-                                    size: 48,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    "Instruksi dikirim",
-                                    style: ThemeText.titleStyle
-                                        .copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ))
-                          .then((value) =>
-                              value ? GoRouter.of(context).go('/login') : null);
+                      if (_emailController.text.isNotEmpty) {
+                        await _auth.sendPasswordResetEmail(
+                            email: _emailController.text);
+                        await showCustomDialog(
+                                context,
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: ThemeColor.greenish,
+                                      size: 48,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      "Instruksi dikirim",
+                                      style: ThemeText.titleStyle.copyWith(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ))
+                            .then((value) => value
+                                ? GoRouter.of(context).go('/login')
+                                : null);
+                      }
                     },
                   ),
                 ),

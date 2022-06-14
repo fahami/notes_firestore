@@ -3,7 +3,7 @@ import 'package:notes/core/error/exception.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
 
 abstract class TodoRemoteDataSource {
-  Future<List<TodoModel>> getTodos();
+  Future<List<TodoModel>> getTodos(String userId);
   Future<TodoModel> getTodoById(String id);
   Future<void> addTodo(TodoModel todo);
   Future<void> deleteTodo(TodoModel todo);
@@ -17,13 +17,16 @@ class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
   TodoRemoteDataSourceImpl(this.fireStore);
 
   @override
-  Future<List<TodoModel>> getTodos() async {
+  Future<List<TodoModel>> getTodos(String userId) async {
     final db = fireStore.collection('todos');
-    final todos = await db.get().then((snapshot) => snapshot.docs.map((doc) {
-          final todo = TodoModel.fromJson(doc.data());
-          todo.id = doc.id;
-          return todo;
-        }).toList());
+    final todos = await db
+        .where("user_id", isEqualTo: userId)
+        .get()
+        .then((snapshot) => snapshot.docs.map((doc) {
+              final todo = TodoModel.fromJson(doc.data());
+              todo.id = doc.id;
+              return todo;
+            }).toList());
     if (todos.isNotEmpty) {
       return todos;
     } else {
@@ -36,7 +39,9 @@ class TodoRemoteDataSourceImpl implements TodoRemoteDataSource {
     final db = fireStore.collection('todos');
     final todoById = await db.doc(id).get();
     if (todoById.exists) {
-      return TodoModel.fromJson(todoById.data()!);
+      final todo = TodoModel.fromJson(todoById.data()!);
+      todo.id = todoById.id;
+      return todo;
     } else {
       throw ServerException('No todo found');
     }

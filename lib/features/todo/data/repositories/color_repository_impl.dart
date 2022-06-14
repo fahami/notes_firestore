@@ -26,7 +26,7 @@ class TodoColorRepositoryImpl extends TodoColorsRepository {
         colors.map((e) => localDataSource.cacheColor(e));
         return Right(colors);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
       try {

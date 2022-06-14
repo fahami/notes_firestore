@@ -29,6 +29,13 @@
             {
               "client_id": "932649317088-r0meom64lim72vq1i3qvb18dd83k02as.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "932649317088-rootvalcjdel9knehi4bu8l20ip3lo5v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.karyasa.notapp"
+              }
             }
           ]
         }

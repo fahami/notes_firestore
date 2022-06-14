@@ -25,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -61,5 +58,15 @@ class DefaultFirebaseOptions {
     storageBucket: 'notapp-multi.appspot.com',
     iosClientId: '932649317088-rootvalcjdel9knehi4bu8l20ip3lo5v.apps.googleusercontent.com',
     iosBundleId: 'com.karyasa.notapp',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyCv9Zm4OMk3pElwHa1_PQ-zgXf6ZEJ4DHs',
+    appId: '1:932649317088:ios:74b2d228384580a591d685',
+    messagingSenderId: '932649317088',
+    projectId: 'notapp-multi',
+    storageBucket: 'notapp-multi.appspot.com',
+    iosClientId: '932649317088-lt7r1v9io98pndhmf7v27svkrhrlrik6.apps.googleusercontent.com',
+    iosBundleId: 'com.karyasa.notes',
   );
 }

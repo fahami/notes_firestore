@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:notes/core/usecases/usecase.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
 import 'package:notes/features/todo/domain/entities/todo.dart';
@@ -15,67 +16,32 @@ part 'todo_event.dart';
 part 'todo_state.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
-  final AddTodo addTodo;
-  final DeleteTodo deleteTodo;
   final GetTodos getTodos;
-  final GetTodoById getTodoById;
-  final UpdateTodo updateTodo;
   final DeleteAllTodo deleteAllTodo;
 
+  List<Todo> todos = [];
+
   TodoBloc({
-    required this.addTodo,
-    required this.deleteTodo,
     required this.getTodos,
-    required this.getTodoById,
-    required this.updateTodo,
     required this.deleteAllTodo,
-  }) : super(Initial()) {
-    on<AddEvent>((event, emit) async {
-      emit(Loading());
-      final failureOrTodo = await addTodo(Params(todo: event.todo));
-      failureOrTodo.fold(
-        (failure) => emit(Error()),
-        (todo) => emit(const Loaded()),
-      );
-    });
-    on<DeleteTodoEvent>((event, emit) async {
-      emit(Loading());
-      final failureOrTodo = await deleteTodo(Params(todo: event.todo));
-      failureOrTodo.fold(
-        (failure) => emit(Error()),
-        (todo) => emit(const Loaded()),
-      );
-    });
+  }) : super(TodosInitial()) {
     on<GetTodosEvent>((event, emit) async {
-      emit(Loading());
-      final failureOrTodos = await getTodos(NoParams());
+      emit(TodosLoading());
+      final failureOrTodos = await getTodos(ParamsUser(userId: event.userId));
       failureOrTodos.fold(
-        (failure) => emit(Error()),
-        (todos) => emit(Loaded(todos: todos)),
-      );
-    });
-    on<GetTodoByIdEvent>((event, emit) async {
-      emit(Loading());
-      final failureOrTodo = await getTodoById(event.todoId);
-      failureOrTodo.fold(
-        (failure) => emit(Error()),
-        (todo) => emit(Loaded(todos: [todo])),
-      );
-    });
-    on<UpdateTodoEvent>((event, emit) async {
-      emit(Loading());
-      final failureOrTodo = await updateTodo(Params(todo: event.todo));
-      failureOrTodo.fold(
-        (failure) => emit(Error()),
-        (todo) => emit(const Loaded()),
+        (failure) => emit(const TodosError()),
+        (todos) {
+          this.todos = todos;
+          emit(TodosLoaded(todos: todos));
+        },
       );
     });
     on<DeleteAllTodoEvent>((event, emit) async {
-      emit(Loading());
+      emit(TodosLoading());
       final failureOrTodo = await deleteAllTodo(NoParams());
       failureOrTodo.fold(
-        (failure) => emit(Error()),
-        (todo) => emit(const Loaded()),
+        (failure) => emit(const TodosError()),
+        (todo) => emit(const TodosLoaded()),
       );
     });
   }

@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -22,8 +20,9 @@ import 'package:notes/features/todo/domain/usecases/get_colors.dart';
 import 'package:notes/features/todo/domain/usecases/get_todo_by_id.dart';
 import 'package:notes/features/todo/domain/usecases/get_todos.dart';
 import 'package:notes/features/todo/domain/usecases/update_todo.dart';
-import 'package:notes/features/todo/presentation/bloc/color_bloc.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
+import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
+import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
 
 import 'features/todo/data/model/color_model.dart';
 
@@ -33,16 +32,20 @@ Future<void> init() async {
   // bloc
   sl.registerFactory(
     () => TodoBloc(
-      addTodo: sl(),
-      deleteTodo: sl(),
       getTodos: sl(),
       deleteAllTodo: sl(),
+    ),
+  );
+
+  sl.registerFactory(() => ColorCubit(sl()));
+  sl.registerFactory(
+    () => EditTodoCubit(
+      addTodo: sl(),
+      deleteTodo: sl(),
       getTodoById: sl(),
       updateTodo: sl(),
     ),
   );
-
-  sl.registerFactory(() => ColorBloc(getColors: sl()));
 
   // usecases
   sl.registerLazySingleton(() => GetTodos(sl()));
@@ -88,7 +91,7 @@ Future<void> init() async {
   final Box<ColorModel> colorBox = await Hive.openBox<ColorModel>('colors');
 
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
-  sl.registerLazySingleton(() => Connectivity());
+  sl.registerLazySingleton(() => InternetConnectionChecker());
   sl.registerLazySingleton(() => firestore);
   sl.registerLazySingleton(() => todoBox);
   sl.registerLazySingleton(() => colorBox);

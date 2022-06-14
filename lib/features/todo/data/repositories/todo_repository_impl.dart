@@ -27,7 +27,7 @@ class TodoRepositoryImpl implements TodoRepository {
         localDataSource.cacheTodo(todo);
         return const Right(null);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
       try {
@@ -47,7 +47,7 @@ class TodoRepositoryImpl implements TodoRepository {
         localDataSource.deleteAllTodos();
         return const Right(null);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
       try {
@@ -67,7 +67,7 @@ class TodoRepositoryImpl implements TodoRepository {
         localDataSource.deleteTodo(todo);
         return const Right(null);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
       try {
@@ -80,16 +80,16 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
-  Future<Either<Failure, List<Todo>>> getTodos() async {
+  Future<Either<Failure, List<Todo>>> getTodos(String userId) async {
     if (await networkInfo.isConnected) {
       try {
-        final todos = await remoteDataSource.getTodos();
+        final todos = await remoteDataSource.getTodos(userId);
         for (var todo in todos) {
           localDataSource.cacheTodo(todo);
         }
         return Right(todos);
-      } on ServerException {
-        return Left(ServerFailure());
+      } on ServerException catch (e) {
+        return Left(ServerFailure(message: e.message));
       }
     } else {
       try {
@@ -109,7 +109,7 @@ class TodoRepositoryImpl implements TodoRepository {
         localDataSource.updateTodo(todo);
         return const Right(null);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
       try {
@@ -129,7 +129,7 @@ class TodoRepositoryImpl implements TodoRepository {
         localDataSource.cacheTodo(todo);
         return Right(todo);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
       try {

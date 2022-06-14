@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notes/core/theme/color_theme.dart';
@@ -9,6 +10,7 @@ class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -79,24 +81,50 @@ class LoginScreen extends StatelessWidget {
                   child: CustomButton(
                     text: "Masuk",
                     onPressed: () {
-                      showCustomDialog(
-                          context,
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                color: ThemeColor.greenish,
-                                size: 48,
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                "Login berhasil",
-                                style: ThemeText.titleStyle
-                                    .copyWith(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          )).then((value) => GoRouter.of(context).go('/notes'));
+                      _auth
+                          .signInWithEmailAndPassword(
+                              email: _emailController.text,
+                              password: _passwordController.text)
+                          .then((value) {
+                        showCustomDialog(
+                                context,
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: ThemeColor.greenish,
+                                      size: 48,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      "Login berhasil",
+                                      style: ThemeText.titleStyle.copyWith(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ))
+                            .then((value) => GoRouter.of(context).go('/notes'));
+                      }).catchError((error) {
+                        showCustomDialog(
+                            context,
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.cancel_outlined,
+                                  color: ThemeColor.pinky,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  "Login gagal",
+                                  style: ThemeText.titleStyle
+                                      .copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ));
+                      });
                     },
                   ),
                 ),

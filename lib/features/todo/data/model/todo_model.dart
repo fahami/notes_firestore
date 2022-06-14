@@ -31,7 +31,7 @@ class TodoModel extends Todo {
         'title': title,
         'isi': isi,
         'color_id': colorId,
-        'reminder': reminder.toIso8601String(),
+        'reminder': Timestamp.fromDate(reminder),
         'user_id': userId,
       };
 }

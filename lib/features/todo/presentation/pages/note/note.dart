@@ -1,15 +1,21 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:notes/core/theme/color_theme.dart';
 import 'package:notes/core/theme/text_theme.dart';
+import 'package:notes/core/util/debouncer.dart';
 import 'package:notes/core/util/utils.dart';
-import 'package:notes/di.dart';
-import 'package:notes/features/todo/domain/usecases/get_todo_by_id.dart';
-import 'package:notes/features/todo/presentation/bloc/color_bloc.dart';
-import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart' as todo;
+import 'package:notes/features/todo/data/model/todo_model.dart';
+import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
+import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
+import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
+import 'package:notes/features/todo/presentation/pages/note/widgets/delete.dart';
+import 'package:notes/features/todo/presentation/pages/note/widgets/save.dart';
+import 'package:notes/features/todo/presentation/pages/note/widgets/swatch.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
 
 class NoteDetailScreen extends StatefulWidget {
   const NoteDetailScreen({Key? key, this.id, this.isNew = false})
@@ -26,308 +32,243 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
 
   final TextEditingController _contentController = TextEditingController();
   bool isAction = false;
-  Color selectedColor = Colors.white;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final debouncer = Debouncer(milliseconds: 1000);
+
+  var todo = TodoModel(
+      id: '',
+      title: '',
+      isi: '',
+      colorId: 1,
+      reminder: DateTime.now(),
+      userId: "");
+
   @override
   void initState() {
-    _titleController.text = widget.isNew ? "" : "Dear Diary";
-    _contentController.text = widget.isNew
-        ? ""
-        : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+    context.read<ColorCubit>().getColors();
+    if (!widget.isNew) context.read<EditTodoCubit>().getById(widget.id!);
+    todo.userId = _auth.currentUser!.uid;
+    if (widget.isNew) todo.id = const Uuid().v1();
     super.initState();
   }
 
-  final colors = [
-    Colors.white,
-    ThemeColor.accentColor,
-    ThemeColor.greenish,
-    ThemeColor.pinky,
-    ThemeColor.primaryColor,
-  ];
-
-  List<Widget> _buildAction() {
+  List<Widget> _buildAction(BuildContext context, TodoModel todo) {
     return isAction
         ? [
             BuildSwatch(
-              colors: colors,
-              selectColor: (color) {
+              selectColor: (int value) {
                 setState(() {
-                  selectedColor = color;
+                  todo.colorId = value;
                 });
               },
             ),
-            const DeleteButton(),
+            DeleteButton(
+              context: context,
+              todo: todo,
+            ),
             SaveButton(
-                contentController: _contentController, isNew: widget.isNew),
+              context: context,
+              todo: todo,
+            ),
           ]
         : [Container()];
   }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.id);
-    return Scaffold(
-      backgroundColor: selectedColor,
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: ThemeColor.typography),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.share,
-              color: ThemeColor.typography,
-            ),
-            onPressed: () => Share.share(_contentController.text),
-          ),
-        ],
-      ),
-      body: BlocProvider(
-        create: (_) => sl<todo.TodoBloc>()
-          ..add(widget.isNew
-              ? todo.GetTodosEvent("GrFpmSJo9cUAQb537DE4")
-              : todo.GetTodoByIdEvent(widget.id ?? '')),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: BlocBuilder<todo.TodoBloc, todo.TodoState>(
-            builder: (context, state) {
-              if (state is todo.Loaded) {
-                if (!widget.isNew) {
-                  _titleController.text = state.todos!.first.title;
-                  _contentController.text = state.todos!.first.isi;
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                          hintText: "Judul",
-                          border: InputBorder.none,
-                          hintStyle: ThemeText.alternativeStyle.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 36,
-                              color: selectedColor.computeLuminance() > 0.5
-                                  ? ThemeColor.typography
-                                  : Colors.white)),
-                      style: ThemeText.alternativeStyle.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 36,
-                          color: selectedColor.computeLuminance() > 0.5
-                              ? ThemeColor.typography
-                              : Colors.white),
-                    ),
-                    Text(
-                      widget.isNew
-                          ? simpleDate(DateTime.now().toIso8601String())
-                          : "${simpleDate(state.todos!.first.reminder.toIso8601String())} • 320 Karakter",
-                      style: ThemeText.captionStyle.copyWith(
-                          color: selectedColor.computeLuminance() > 0.5
-                              ? ThemeColor.typography
-                              : Colors.white),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: ListView(
-                        children: [
-                          TextFormField(
-                            controller: _contentController,
-                            style: ThemeText.captionStyle.copyWith(
-                                color: selectedColor.computeLuminance() > 0.5
-                                    ? ThemeColor.typography
-                                    : Colors.white),
-                            maxLines: null,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: "Tulis sesuatu...",
-                              hintStyle: ThemeText.captionStyle.copyWith(
-                                  color: selectedColor.computeLuminance() > 0.5
-                                      ? ThemeColor.typography
-                                      : Colors.white),
-                            ),
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                );
-              } else if (state is todo.Error) {
-                return const Text("Error");
-              } else if (state is todo.Loading) {
-                return const Center(child: CircularProgressIndicator());
-              } else {
-                return const Text("Initial");
-              }
-            },
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              spreadRadius: 8,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-                switchInCurve: Curves.bounceIn,
-                switchOutCurve: Curves.easeOutCirc,
-                duration: const Duration(seconds: 2),
-                child: Column(
-                  children: _buildAction(),
-                )),
-            ListTile(
-              title: Text(
-                widget.isNew
-                    ? simpleDate(DateTime.now().toIso8601String())
-                    : "Selasa, 17 November 2022 • 320 Karakter",
-                style:
-                    ThemeText.captionStyle.copyWith(color: ThemeColor.caption),
-              ),
-              trailing: IconButton(
-                onPressed: () {
-                  setState(() {
-                    isAction = !isAction;
-                  });
-                },
+    return BlocBuilder<ColorCubit, ColorState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor:
+              HexColor(context.read<ColorCubit>().selectedColor.colorType),
+          appBar: AppBar(
+            iconTheme: IconThemeData(color: ThemeColor.typography),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
+            actions: [
+              IconButton(
                 icon: Icon(
-                  Icons.more_vert,
+                  Icons.share,
                   color: ThemeColor.typography,
                 ),
+                onPressed: () => Share.share(_contentController.text),
               ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SaveButton extends StatelessWidget {
-  const SaveButton({
-    Key? key,
-    required this.isNew,
-    required TextEditingController contentController,
-  })  : _contentController = contentController,
-        super(key: key);
-
-  final bool isNew;
-  final TextEditingController _contentController;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        Icons.save,
-        color: ThemeColor.typography,
-      ),
-      title: Text(
-        "Simpan",
-        style: ThemeText.bodyStyle,
-      ),
-      onTap: () {
-        if (isNew) {
-          Navigator.pop(context);
-        } else {
-          Navigator.pop(context, _contentController.text);
-        }
-      },
-    );
-  }
-}
-
-class DeleteButton extends StatelessWidget {
-  const DeleteButton({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        Icons.delete,
-        color: ThemeColor.typography,
-      ),
-      title: Text(
-        "Hapus",
-        style: ThemeText.bodyStyle,
-      ),
-      onTap: () {
-        Navigator.pop(context, null);
-      },
-    );
-  }
-}
-
-class BuildSwatch extends StatelessWidget {
-  const BuildSwatch({
-    Key? key,
-    required this.colors,
-    required this.selectColor,
-  }) : super(key: key);
-
-  final List<Color> colors;
-  final ValueChanged<Color> selectColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<ColorBloc>()..add(const GetColors()),
-      child: SizedBox(
-        height: 48,
-        child: BlocBuilder<ColorBloc, ColorState>(
-          builder: (context, state) {
-            if (state is Loaded) {
-              return ListView.builder(
-                shrinkWrap: true,
-                itemCount: state.colors.length,
-                scrollDirection: Axis.horizontal,
+            ],
+          ),
+          body: BlocConsumer<EditTodoCubit, EditTodoState>(
+            listener: (context, editState) {
+              if (editState is EditTodoLoaded) {
+                if (!widget.isNew) {
+                  _titleController.text = editState.todo.title;
+                  _contentController.text = editState.todo.isi;
+                  todo = editState.todo as TodoModel;
+                }
+              }
+            },
+            builder: (context, state) {
+              return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 16),
-                    child: InkWell(
-                      child: Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          color: HexColor(state.colors[index].colorType),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: HexColor(state.colors[index].colorType)
-                                        .computeLuminance() >
-                                    0.5
-                                ? ThemeColor.disabled
-                                : Colors.white,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      onTap: () =>
-                          selectColor(HexColor(state.colors[index].colorType)),
-                    ),
-                  );
-                },
+                child: BlocBuilder<EditTodoCubit, EditTodoState>(
+                  builder: (context, todoState) {
+                    if (todoState is EditTodoLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (todoState is TodosError) {
+                      return const Text("Error");
+                    } else if (todoState is EditTodoLoaded) {
+                      if (context.read<ColorCubit>().state is ColorsLoaded) {
+                        context
+                            .read<ColorCubit>()
+                            .changeColor(todoState.todo.colorId.toString());
+                      }
+                      return BlocBuilder<ColorCubit, ColorState>(
+                        builder: (context, state) {
+                          if (state is ColorLoading) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (state is ColorChanged) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextFormField(
+                                  controller: _titleController,
+                                  decoration: InputDecoration(
+                                      hintText: "Judul",
+                                      border: InputBorder.none,
+                                      hintStyle: ThemeText.alternativeStyle
+                                          .copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 36,
+                                              color: state.color
+                                                          .computeLuminance() >
+                                                      0.5
+                                                  ? ThemeColor.typography
+                                                  : Colors.white)),
+                                  style: ThemeText.alternativeStyle.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 36,
+                                      color:
+                                          state.color.computeLuminance() > 0.5
+                                              ? ThemeColor.typography
+                                              : Colors.white),
+                                  onChanged: (v) {
+                                    todo.title = v;
+                                    print(todo.title);
+                                  },
+                                ),
+                                Text(
+                                  widget.isNew
+                                      ? simpleDate(
+                                          DateTime.now().toIso8601String())
+                                      : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
+                                  style: ThemeText.captionStyle.copyWith(
+                                      color:
+                                          state.color.computeLuminance() > 0.5
+                                              ? ThemeColor.typography
+                                              : Colors.white),
+                                ),
+                                const SizedBox(height: 8),
+                                Expanded(
+                                  child: ListView(
+                                    children: [
+                                      TextFormField(
+                                        controller: _contentController,
+                                        style: ThemeText.captionStyle.copyWith(
+                                            color:
+                                                state.color.computeLuminance() >
+                                                        0.5
+                                                    ? ThemeColor.typography
+                                                    : Colors.white),
+                                        maxLines: null,
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          hintText: "Tulis sesuatu...",
+                                          hintStyle: ThemeText.captionStyle
+                                              .copyWith(
+                                                  color: state.color
+                                                              .computeLuminance() >
+                                                          0.5
+                                                      ? ThemeColor.typography
+                                                      : Colors.white),
+                                        ),
+                                        onChanged: (v) {
+                                          todo.isi = v;
+                                          todo.reminder = DateTime.now();
+                                          print(todo);
+                                          debouncer.run(() {
+                                            context
+                                                .read<EditTodoCubit>()
+                                                .createTodo(todo);
+                                          });
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
+                            );
+                          } else {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                        },
+                      );
+                    } else {
+                      return const Text("Initial");
+                    }
+                  },
+                ),
               );
-            } else if (state is Error) {
-              return const Text("Error");
-            } else if (state is Loading) {
-              return CircularProgressIndicator();
-            } else {
-              return const Text("Initial");
-            }
-          },
-        ),
-      ),
+            },
+          ),
+          bottomNavigationBar: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  spreadRadius: 8,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                    switchInCurve: Curves.bounceIn,
+                    switchOutCurve: Curves.easeOutCirc,
+                    duration: const Duration(seconds: 2),
+                    child: Column(
+                      children: _buildAction(context, todo),
+                    )),
+                ListTile(
+                  title: Text(
+                    widget.isNew
+                        ? simpleDate(DateTime.now().toIso8601String())
+                        : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
+                    style: ThemeText.captionStyle
+                        .copyWith(color: ThemeColor.caption),
+                  ),
+                  trailing: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isAction = !isAction;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: ThemeColor.typography,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

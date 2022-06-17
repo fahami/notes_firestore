@@ -105,6 +105,12 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                   todo = editState.todo as TodoModel;
                 }
               }
+              if (editState is EditTodoSaved) {
+                Navigator.pop(context);
+              }
+              if (editState is EditTodoDeleted) {
+                Navigator.pop(context);
+              }
             },
             builder: (context, state) {
               return Container(
@@ -115,7 +121,9 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                       return const Center(child: CircularProgressIndicator());
                     } else if (todoState is TodosError) {
                       return const Text("Error");
-                    } else if (todoState is EditTodoLoaded) {
+                    } else if (todoState is EditTodoLoaded ||
+                        todoState is EditTodoSaved ||
+                        todoState is EditTodoAutoSaved) {
                       if (context.read<ColorCubit>().state is ColorsLoaded) {
                         context
                             .read<ColorCubit>()
@@ -158,8 +166,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                                 ),
                                 Text(
                                   widget.isNew
-                                      ? simpleDate(
-                                          DateTime.now().toIso8601String())
+                                      ? "${simpleDate(DateTime.now().toIso8601String())} • ${_contentController.text.length} Karakter"
                                       : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
                                   style: ThemeText.captionStyle.copyWith(
                                       color:
@@ -192,9 +199,11 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                                                       : Colors.white),
                                         ),
                                         onChanged: (v) {
-                                          todo.isi = v;
-                                          todo.reminder = DateTime.now();
-                                          print(todo);
+                                          setState(() {
+                                            todo.isi = v;
+                                            todo.reminder = DateTime.now();
+                                          });
+
                                           debouncer.run(() {
                                             context
                                                 .read<EditTodoCubit>()
@@ -245,9 +254,15 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                       children: _buildAction(context, todo),
                     )),
                 ListTile(
+                  leading:
+                      context.read<EditTodoCubit>().state is EditTodoAutoSaved
+                          ? Icon(Icons.check,
+                              color: ThemeColor.greenish,
+                              key: const Key("auto-save"))
+                          : const SizedBox(),
                   title: Text(
                     widget.isNew
-                        ? simpleDate(DateTime.now().toIso8601String())
+                        ? "${simpleDate(DateTime.now().toIso8601String())} • ${_contentController.text.length} Karakter"
                         : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
                     style: ThemeText.captionStyle
                         .copyWith(color: ThemeColor.caption),

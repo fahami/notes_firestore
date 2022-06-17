@@ -10,27 +10,27 @@ part 'color_state.dart';
 
 class ColorCubit extends Cubit<ColorState> {
   final GetTodoColor getTodoColors;
-  ColorCubit(this.getTodoColors) : super(ColorInitial());
+  ColorCubit(this.getTodoColors) : super(const ColorInitial());
 
   List<TodoColor> colors = [];
   TodoColor selectedColor = TodoColor("1", "yellow", "#FFD633");
 
   void changeColor(String colorId) {
-    emit(ColorLoading());
+    emit(const ColorLoading());
     final color = colors.firstWhere((color) => color.id == colorId);
     selectedColor = color;
     emit(ColorChanged(HexColor(color.colorType)));
   }
 
   void resetColor() {
-    emit(ColorReset());
+    emit(const ColorReset());
   }
 
   void getColors() async {
-    emit(ColorLoading());
+    emit(const ColorLoading());
     final failureOrColors = await getTodoColors(NoParams());
     failureOrColors.fold(
-      (failure) => emit(ColorError()),
+      (failure) => emit(const ColorError()),
       (colors) {
         this.colors = colors;
         emit(ColorsLoaded(colors));

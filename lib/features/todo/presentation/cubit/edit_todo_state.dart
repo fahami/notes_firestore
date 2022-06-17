@@ -21,3 +21,23 @@ class EditTodoLoaded extends EditTodoState {
   @override
   List<Object> get props => [todo];
 }
+
+class EditTodoAutoSaved extends EditTodoState {
+  final Todo todo;
+
+  const EditTodoAutoSaved({required this.todo});
+
+  @override
+  List<Object> get props => [todo];
+}
+
+class EditTodoSaved extends EditTodoState {
+  final Todo todo;
+
+  const EditTodoSaved({required this.todo});
+
+  @override
+  List<Object> get props => [todo];
+}
+
+class EditTodoDeleted extends EditTodoState {}

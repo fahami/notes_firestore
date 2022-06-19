@@ -56,7 +56,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '932649317088',
     projectId: 'notapp-multi',
     storageBucket: 'notapp-multi.appspot.com',
-    iosClientId: '932649317088-rootvalcjdel9knehi4bu8l20ip3lo5v.apps.googleusercontent.com',
+    iosClientId:
+        '932649317088-rootvalcjdel9knehi4bu8l20ip3lo5v.apps.googleusercontent.com',
     iosBundleId: 'com.karyasa.notapp',
   );
 
@@ -66,7 +67,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '932649317088',
     projectId: 'notapp-multi',
     storageBucket: 'notapp-multi.appspot.com',
-    iosClientId: '932649317088-lt7r1v9io98pndhmf7v27svkrhrlrik6.apps.googleusercontent.com',
+    iosClientId:
+        '932649317088-lt7r1v9io98pndhmf7v27svkrhrlrik6.apps.googleusercontent.com',
     iosBundleId: 'com.karyasa.notes',
   );
 }

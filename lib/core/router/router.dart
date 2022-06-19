@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:notes/features/auth/presentation/pages/forgot_password/forgot_password.dart';
 import 'package:notes/features/auth/presentation/pages/login/login.dart';
 import 'package:notes/features/auth/presentation/pages/onboard/onboard.dart';
+import 'package:notes/features/auth/presentation/pages/user/user_screen.dart';
 import 'package:notes/features/todo/presentation/pages/error/error.dart';
 import 'package:notes/features/auth/presentation/pages/register/register.dart';
 import 'package:notes/features/todo/presentation/pages/note/note.dart';
@@ -42,6 +43,7 @@ class AppRouter {
           id: state.params['id'],
         ),
       ),
+      GoRoute(path: '/user', builder: (context, state) => UserScreen()),
     ],
     errorBuilder: (context, state) => const ErrorScreen(),
     initialLocation: _auth.currentUser?.uid != null ? '/notes' : '/',

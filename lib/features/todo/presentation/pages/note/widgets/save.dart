@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/core/theme/color_theme.dart';
 import 'package:notes/core/theme/text_theme.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
-import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
-import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
+import 'package:notes/features/todo/presentation/bloc/edit_todo_bloc.dart';
 
 class SaveButton extends StatelessWidget {
   const SaveButton({
@@ -29,7 +28,7 @@ class SaveButton extends StatelessWidget {
       ),
       onTap: () {
         todo.reminder = DateTime.now();
-        context.read<EditTodoCubit>().createTodo(todo);
+        context.read<EditTodoBloc>().add(EditSave(todo: todo));
       },
     );
   }

@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:notes/core/theme/color_theme.dart';
+import 'package:notes/features/todo/presentation/bloc/edit_todo_bloc.dart';
 import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
 
 class BuildSwatch extends StatelessWidget {
-  const BuildSwatch({Key? key, required this.selectColor}) : super(key: key);
+  const BuildSwatch({
+    Key? key,
+    required this.selectColor,
+    required this.context,
+  }) : super(key: key);
   final ValueChanged<int> selectColor;
+  final BuildContext context;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +54,8 @@ class BuildSwatch extends StatelessWidget {
                         int.parse(context.read<ColorCubit>().colors[index].id));
                     context.read<ColorCubit>().changeColor(
                         context.read<ColorCubit>().colors[index].id);
+
+                    // context.read<EditTodoBloc>().add(SaveTodo(todo: todo));
                   },
                 ),
               );

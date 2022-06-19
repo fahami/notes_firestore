@@ -20,9 +20,9 @@ import 'package:notes/features/todo/domain/usecases/get_colors.dart';
 import 'package:notes/features/todo/domain/usecases/get_todo_by_id.dart';
 import 'package:notes/features/todo/domain/usecases/get_todos.dart';
 import 'package:notes/features/todo/domain/usecases/update_todo.dart';
+import 'package:notes/features/todo/presentation/bloc/edit_todo_bloc.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
 import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
-import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
 
 import 'features/todo/data/model/color_model.dart';
 
@@ -38,15 +38,12 @@ Future<void> init() async {
   );
 
   sl.registerFactory(() => ColorCubit(sl()));
-  sl.registerFactory(
-    () => EditTodoCubit(
-      addTodo: sl(),
-      deleteTodo: sl(),
-      getTodoById: sl(),
-      updateTodo: sl(),
-    ),
-  );
-
+  sl.registerFactory(() => EditTodoBloc(
+        addTodo: sl(),
+        deleteTodo: sl(),
+        getTodoById: sl(),
+        updateTodo: sl(),
+      ));
   // usecases
   sl.registerLazySingleton(() => GetTodos(sl()));
   sl.registerLazySingleton(() => DeleteTodo(sl()));

@@ -15,9 +15,9 @@ class ColorLoading extends ColorState {
   const ColorLoading() : super();
 }
 
-class ColorChanged extends ColorState {
+class ColorLoaded extends ColorState {
   final Color color;
-  const ColorChanged(this.color) : super();
+  const ColorLoaded(this.color) : super();
 }
 
 class ColorReset extends ColorState {

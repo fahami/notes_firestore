@@ -7,6 +7,7 @@ import 'package:notes/core/theme/color_theme.dart';
 import 'package:notes/core/theme/text_theme.dart';
 import 'package:notes/core/util/utils.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
+import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
 
 class NotesScreen extends StatelessWidget {
   NotesScreen({Key? key}) : super(key: key);
@@ -15,6 +16,8 @@ class NotesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read<ColorCubit>().getColors();
+
     return Scaffold(
       body: Column(
         children: [
@@ -42,9 +45,7 @@ class NotesScreen extends StatelessWidget {
                           ),
                         ),
                         onTap: () {
-                          _auth
-                              .signOut()
-                              .then((_) => GoRouter.of(context).go('/login'));
+                          GoRouter.of(context).push('/user');
                         },
                       )
                     ],

@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:notes/core/theme/color_theme.dart';
 import 'package:notes/core/theme/text_theme.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
+import 'package:notes/features/todo/presentation/bloc/edit_todo_bloc.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
-import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
 
 class DeleteButton extends StatelessWidget {
   const DeleteButton({
@@ -29,12 +29,11 @@ class DeleteButton extends StatelessWidget {
         style: ThemeText.bodyStyle,
       ),
       onTap: () {
-        context.read<EditTodoCubit>().removeTodo(todo);
+        context.read<EditTodoBloc>().add(EditDelete(todo.id));
         context
             .read<TodoBloc>()
             .todos
             .removeWhere((element) => element == todo);
-        GoRouter.of(context).pop();
       },
     );
   }

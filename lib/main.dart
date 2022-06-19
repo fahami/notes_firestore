@@ -5,16 +5,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/core/router/router.dart';
 import 'package:notes/di.dart' as di;
 import 'package:notes/di.dart';
+import 'package:notes/features/todo/presentation/bloc/edit_todo_bloc.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
+import 'package:notes/features/todo/presentation/bloc_observer.dart';
 import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
-import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
 import 'package:notes/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await di.init();
-  runApp(MyApp());
+  BlocOverrides.runZoned(() => runApp(MyApp()), blocObserver: MyBlocObserver());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
           create: (context) => sl<ColorCubit>()..getColors(),
         ),
         BlocProvider(
-          create: (context) => sl<EditTodoCubit>(),
+          create: (context) => sl<EditTodoBloc>(),
         ),
       ],
       child: MaterialApp.router(

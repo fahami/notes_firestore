@@ -24,3 +24,12 @@ class DeleteAllTodoEvent extends TodoEvent {
   @override
   List<Object> get props => [userId];
 }
+
+class DeleteTodoEvent extends TodoEvent {
+  final String todoId;
+
+  const DeleteTodoEvent(this.todoId);
+
+  @override
+  List<Object> get props => [todoId];
+}

@@ -8,9 +8,9 @@ import 'package:notes/core/theme/text_theme.dart';
 import 'package:notes/core/util/debouncer.dart';
 import 'package:notes/core/util/utils.dart';
 import 'package:notes/features/todo/data/model/todo_model.dart';
+import 'package:notes/features/todo/presentation/bloc/edit_todo_bloc.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
 import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
-import 'package:notes/features/todo/presentation/cubit/edit_todo_cubit.dart';
 import 'package:notes/features/todo/presentation/pages/note/widgets/delete.dart';
 import 'package:notes/features/todo/presentation/pages/note/widgets/save.dart';
 import 'package:notes/features/todo/presentation/pages/note/widgets/swatch.dart';
@@ -45,10 +45,14 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
 
   @override
   void initState() {
-    context.read<ColorCubit>().getColors();
-    if (!widget.isNew) context.read<EditTodoCubit>().getById(widget.id!);
+    todo.id = const Uuid().v1();
     todo.userId = _auth.currentUser!.uid;
-    if (widget.isNew) todo.id = const Uuid().v1();
+    if (!widget.isNew) context.read<EditTodoBloc>().add(EditLoad(widget.id!));
+    if (widget.isNew) {
+      context.read<EditTodoBloc>()
+        ..emit(EditLoaded(todo))
+        ..add(EditSave(todo: todo));
+    }
     super.initState();
   }
 
@@ -61,6 +65,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                   todo.colorId = value;
                 });
               },
+              context: context,
             ),
             DeleteButton(
               context: context,
@@ -76,7 +81,16 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ColorCubit, ColorState>(
+    return BlocConsumer<ColorCubit, ColorState>(
+      listener: (context, state) {
+        if (state is ColorLoaded) {
+          setState(() {
+            todo.colorId =
+                int.parse(context.read<ColorCubit>().selectedColor.id);
+          });
+          context.read<EditTodoBloc>().add(EditSave(todo: todo));
+        }
+      },
       builder: (context, state) {
         return Scaffold(
           backgroundColor:
@@ -96,134 +110,113 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
               ),
             ],
           ),
-          body: BlocConsumer<EditTodoCubit, EditTodoState>(
+          body: BlocConsumer<EditTodoBloc, EditTodoState>(
             listener: (context, editState) {
-              if (editState is EditTodoLoaded) {
+              if (editState is EditLoaded) {
                 if (!widget.isNew) {
                   _titleController.text = editState.todo.title;
                   _contentController.text = editState.todo.isi;
-                  todo = editState.todo as TodoModel;
+                  todo = editState.todo;
+                  context
+                      .read<ColorCubit>()
+                      .changeColor(editState.todo.colorId.toString());
                 }
               }
-              if (editState is EditTodoSaved) {
+              if (editState is EditSaved) {
                 Navigator.pop(context);
               }
-              if (editState is EditTodoDeleted) {
+              if (editState is EditDeleted) {
                 Navigator.pop(context);
+                context.read<TodoBloc>().add(DeleteTodoEvent(todo.id));
               }
             },
-            builder: (context, state) {
+            builder: (context, editTodoState) {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: BlocBuilder<EditTodoCubit, EditTodoState>(
+                child: BlocBuilder<EditTodoBloc, EditTodoState>(
                   builder: (context, todoState) {
-                    if (todoState is EditTodoLoading) {
+                    if (todoState is EditLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (todoState is TodosError) {
                       return const Text("Error");
-                    } else if (todoState is EditTodoLoaded ||
-                        todoState is EditTodoSaved ||
-                        todoState is EditTodoAutoSaved) {
-                      if (context.read<ColorCubit>().state is ColorsLoaded) {
-                        context
-                            .read<ColorCubit>()
-                            .changeColor(todoState.todo.colorId.toString());
-                      }
-                      return BlocBuilder<ColorCubit, ColorState>(
-                        builder: (context, state) {
-                          if (state is ColorLoading) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (state is ColorChanged) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    } else if (todoState is EditLoaded) {
+                      final state =
+                          context.read<ColorCubit>().state as ColorLoaded;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: _titleController,
+                            decoration: InputDecoration(
+                                hintText: "Judul",
+                                border: InputBorder.none,
+                                hintStyle: ThemeText.alternativeStyle.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 36,
+                                    color: state.color.computeLuminance() > 0.5
+                                        ? ThemeColor.typography
+                                        : Colors.white)),
+                            style: ThemeText.alternativeStyle.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 36,
+                                color: state.color.computeLuminance() > 0.5
+                                    ? ThemeColor.typography
+                                    : Colors.white),
+                            onChanged: (v) {
+                              todo.title = v;
+                              print(todo.title);
+                            },
+                          ),
+                          Text(
+                            widget.isNew
+                                ? "${simpleDate(DateTime.now().toIso8601String())} • ${_contentController.text.length} Karakter"
+                                : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
+                            style: ThemeText.captionStyle.copyWith(
+                                color: state.color.computeLuminance() > 0.5
+                                    ? ThemeColor.typography
+                                    : Colors.white),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: ListView(
                               children: [
                                 TextFormField(
-                                  controller: _titleController,
-                                  decoration: InputDecoration(
-                                      hintText: "Judul",
-                                      border: InputBorder.none,
-                                      hintStyle: ThemeText.alternativeStyle
-                                          .copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 36,
-                                              color: state.color
-                                                          .computeLuminance() >
-                                                      0.5
-                                                  ? ThemeColor.typography
-                                                  : Colors.white)),
-                                  style: ThemeText.alternativeStyle.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 36,
-                                      color:
-                                          state.color.computeLuminance() > 0.5
-                                              ? ThemeColor.typography
-                                              : Colors.white),
-                                  onChanged: (v) {
-                                    todo.title = v;
-                                    print(todo.title);
-                                  },
-                                ),
-                                Text(
-                                  widget.isNew
-                                      ? "${simpleDate(DateTime.now().toIso8601String())} • ${_contentController.text.length} Karakter"
-                                      : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
+                                  controller: _contentController,
                                   style: ThemeText.captionStyle.copyWith(
                                       color:
                                           state.color.computeLuminance() > 0.5
                                               ? ThemeColor.typography
                                               : Colors.white),
-                                ),
-                                const SizedBox(height: 8),
-                                Expanded(
-                                  child: ListView(
-                                    children: [
-                                      TextFormField(
-                                        controller: _contentController,
-                                        style: ThemeText.captionStyle.copyWith(
-                                            color:
-                                                state.color.computeLuminance() >
-                                                        0.5
-                                                    ? ThemeColor.typography
-                                                    : Colors.white),
-                                        maxLines: null,
-                                        decoration: InputDecoration(
-                                          border: InputBorder.none,
-                                          hintText: "Tulis sesuatu...",
-                                          hintStyle: ThemeText.captionStyle
-                                              .copyWith(
-                                                  color: state.color
-                                                              .computeLuminance() >
-                                                          0.5
-                                                      ? ThemeColor.typography
-                                                      : Colors.white),
-                                        ),
-                                        onChanged: (v) {
-                                          setState(() {
-                                            todo.isi = v;
-                                            todo.reminder = DateTime.now();
-                                          });
-
-                                          debouncer.run(() {
-                                            context
-                                                .read<EditTodoCubit>()
-                                                .createTodo(todo);
-                                          });
-                                        },
-                                      )
-                                    ],
+                                  maxLines: null,
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: "Tulis sesuatu...",
+                                    hintStyle: ThemeText.captionStyle.copyWith(
+                                        color:
+                                            state.color.computeLuminance() > 0.5
+                                                ? ThemeColor.typography
+                                                : Colors.white),
                                   ),
+                                  onChanged: (v) {
+                                    setState(() {
+                                      todo.isi = v;
+                                      todo.reminder = DateTime.now();
+                                    });
+
+                                    debouncer.run(() {
+                                      context
+                                          .read<EditTodoBloc>()
+                                          .add(EditSave(todo: todo));
+                                    });
+                                  },
                                 )
                               ],
-                            );
-                          } else {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                        },
+                            ),
+                          )
+                        ],
                       );
                     } else {
-                      return const Text("Initial");
+                      return Container();
                     }
                   },
                 ),
@@ -254,12 +247,11 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                       children: _buildAction(context, todo),
                     )),
                 ListTile(
-                  leading:
-                      context.read<EditTodoCubit>().state is EditTodoAutoSaved
-                          ? Icon(Icons.check,
-                              color: ThemeColor.greenish,
-                              key: const Key("auto-save"))
-                          : const SizedBox(),
+                  leading: context.read<EditTodoBloc>().state is EditSaved
+                      ? Icon(Icons.check,
+                          color: ThemeColor.greenish,
+                          key: const Key("auto-save"))
+                      : const SizedBox(),
                   title: Text(
                     widget.isNew
                         ? "${simpleDate(DateTime.now().toIso8601String())} • ${_contentController.text.length} Karakter"

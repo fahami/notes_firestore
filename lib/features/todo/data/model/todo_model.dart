@@ -17,6 +17,24 @@ class TodoModel extends Todo {
             reminder: reminder,
             userId: userId);
 
+  TodoModel copyWith({
+    String? id,
+    String? title,
+    String? isi,
+    int? colorId,
+    DateTime? reminder,
+    String? userId,
+  }) {
+    return TodoModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isi: isi ?? this.isi,
+      colorId: colorId ?? this.colorId,
+      reminder: reminder ?? this.reminder,
+      userId: userId ?? this.userId,
+    );
+  }
+
   factory TodoModel.fromJson(Map<String, dynamic> json) => TodoModel(
         id: json['id'] ?? '',
         title: json['title'],

@@ -18,7 +18,7 @@ class OnboardScreen extends StatelessWidget {
             },
             child: Text(
               key: const Key("onboard_login_button"),
-              "Masuk",
+              "Mulai",
               style: ThemeText.bodyStyle,
             ),
             style: TextButton.styleFrom(

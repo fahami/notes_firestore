@@ -57,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     height: 48,
                     child: TextField(
+                      key: Key("email_field"),
                       controller: _emailController,
                       enableSuggestions: true,
                       autofillHints: const [AutofillHints.email],
@@ -75,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     height: 48,
                     child: TextField(
+                      key: Key("password_field"),
                       controller: _passwordController,
                       obscureText: isObscure,
                       enableSuggestions: true,
@@ -102,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 16),
                     child: CustomButton(
+                      key: Key("login_button"),
                       text: "Masuk",
                       onPressed: () {
                         _auth

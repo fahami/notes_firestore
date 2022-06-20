@@ -88,6 +88,8 @@ class NotesScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemBuilder: (context, index) {
                       return InkWell(
+                        key: Key(
+                            "note_${context.read<TodoBloc>().todos[index].id}"),
                         onTap: () => GoRouter.of(context).push(
                             '/note/${context.read<TodoBloc>().todos[index].id}'),
                         child: Container(

@@ -17,6 +17,7 @@ class OnboardScreen extends StatelessWidget {
               GoRouter.of(context).go('/login');
             },
             child: Text(
+              key: Key("onboard_login_button"),
               "Masuk",
               style: ThemeText.bodyStyle,
             ),

@@ -173,7 +173,7 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
                                 : "${simpleDate(todo.reminder.toIso8601String())} • ${_contentController.text.length} Karakter",
                             style: ThemeText.captionStyle.copyWith(
                                 color: state.color.computeLuminance() > 0.5
-                                    ? ThemeColor.typography
+                                    ? ThemeColor.disabled
                                     : Colors.white),
                           ),
                           const SizedBox(height: 8),

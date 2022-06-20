@@ -22,9 +22,15 @@ class SearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: "Cari catatanmu...",
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          fillColor: Colors.white,
+          filled: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(200),
-            borderSide: BorderSide(color: ThemeColor.disabled),
+            borderSide: BorderSide(color: ThemeColor.grey),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(200),
+            borderSide: BorderSide(color: ThemeColor.grey),
           ),
         ),
         onChanged: (query) {

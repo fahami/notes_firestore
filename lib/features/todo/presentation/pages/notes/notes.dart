@@ -19,6 +19,7 @@ class NotesScreen extends StatelessWidget {
     context.read<ColorCubit>().getColors();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           SafeArea(
@@ -77,8 +78,8 @@ class NotesScreen extends StatelessWidget {
                   },
                   child: MasonryGridView.count(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 4,
-                    crossAxisSpacing: 4,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
                     itemCount: state.todos.length,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemBuilder: (context, index) {
@@ -91,7 +92,7 @@ class NotesScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: ThemeColor.disabled),
+                            border: Border.all(color: ThemeColor.grey),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +108,7 @@ class NotesScreen extends StatelessWidget {
                               Text(
                                 state.todos.elementAt(index).isi,
                                 style: ThemeText.captionStyle,
-                                maxLines: index + 1,
+                                maxLines: 7,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),

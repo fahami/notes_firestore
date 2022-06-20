@@ -46,8 +46,11 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
 
     on<SearchTodoEvent>((event, emit) {
       emit(TodosLoading());
-      final searchResult = todos.where((todo) =>
-          todo.title.toLowerCase().contains(event.query.toLowerCase()));
+      final searchResult = todos.where(
+        (todo) =>
+            todo.title.toLowerCase().contains(event.query.toLowerCase()) ||
+            todo.isi.toLowerCase().contains(event.query.toLowerCase()),
+      );
       log(searchResult.toString());
       if (searchResult.isEmpty) {
         emit(const TodosLoaded(todos: []));

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:notes/core/usecases/usecase.dart';
@@ -34,12 +36,24 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       final failureOrTodo = await deleteAllTodo(NoParams());
       failureOrTodo.fold(
         (failure) => emit(const TodosError()),
-        (todo) => emit(const TodosLoaded()),
+        (todo) => emit(const TodosLoaded(todos: [])),
       );
     });
     on<DeleteTodoEvent>((event, emit) {
       todos.removeWhere((todo) => todo.id == event.todoId);
       emit(TodosLoaded(todos: todos));
+    });
+
+    on<SearchTodoEvent>((event, emit) {
+      emit(TodosLoading());
+      final searchResult = todos.where((todo) =>
+          todo.title.toLowerCase().contains(event.query.toLowerCase()));
+      log(searchResult.toString());
+      if (searchResult.isEmpty) {
+        emit(const TodosLoaded(todos: []));
+      } else {
+        emit(TodosLoaded(todos: searchResult.toList()));
+      }
     });
   }
 }

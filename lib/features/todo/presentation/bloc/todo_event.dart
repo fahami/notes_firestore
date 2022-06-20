@@ -33,3 +33,12 @@ class DeleteTodoEvent extends TodoEvent {
   @override
   List<Object> get props => [todoId];
 }
+
+class SearchTodoEvent extends TodoEvent {
+  final String query;
+
+  const SearchTodoEvent(this.query);
+
+  @override
+  List<Object> get props => [query];
+}

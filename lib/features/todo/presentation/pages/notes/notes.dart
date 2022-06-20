@@ -8,10 +8,10 @@ import 'package:notes/core/theme/text_theme.dart';
 import 'package:notes/core/util/utils.dart';
 import 'package:notes/features/todo/presentation/bloc/todo_bloc.dart';
 import 'package:notes/features/todo/presentation/cubit/color_cubit.dart';
+import 'package:notes/features/todo/presentation/pages/notes/widgets/search_bar.dart';
 
 class NotesScreen extends StatelessWidget {
   NotesScreen({Key? key}) : super(key: key);
-  final TextEditingController _searchController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
@@ -51,21 +51,7 @@ class NotesScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  SizedBox(
-                    height: 48,
-                    child: TextField(
-                      controller: _searchController,
-                      enableSuggestions: true,
-                      decoration: InputDecoration(
-                        hintText: "Cari catatanmu...",
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(200),
-                            borderSide: BorderSide(color: ThemeColor.disabled)),
-                      ),
-                    ),
-                  ),
+                  SearchBar(),
                 ],
               ),
             ),
@@ -74,6 +60,15 @@ class NotesScreen extends StatelessWidget {
           Expanded(child: BlocBuilder<TodoBloc, TodoState>(
             builder: (context, state) {
               if (state is TodosLoaded) {
+                if (state.todos.isEmpty) {
+                  return Center(
+                    child: Text(
+                      "Tidak ada catatan",
+                      style: ThemeText.titleStyle
+                          .copyWith(color: ThemeColor.disabled, fontSize: 18),
+                    ),
+                  );
+                }
                 return RefreshIndicator(
                   onRefresh: () async {
                     context
@@ -84,14 +79,13 @@ class NotesScreen extends StatelessWidget {
                     crossAxisCount: 2,
                     mainAxisSpacing: 4,
                     crossAxisSpacing: 4,
-                    itemCount: context.read<TodoBloc>().todos.length,
+                    itemCount: state.todos.length,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemBuilder: (context, index) {
                       return InkWell(
-                        key: Key(
-                            "note_${context.read<TodoBloc>().todos[index].id}"),
-                        onTap: () => GoRouter.of(context).push(
-                            '/note/${context.read<TodoBloc>().todos[index].id}'),
+                        key: Key("note_${state.todos[index].id}"),
+                        onTap: () => GoRouter.of(context)
+                            .push('/note/${state.todos[index].id}'),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -103,11 +97,7 @@ class NotesScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                context
-                                    .read<TodoBloc>()
-                                    .todos
-                                    .elementAt(index)
-                                    .title,
+                                state.todos.elementAt(index).title,
                                 style: ThemeText.alternativeStyle.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -115,20 +105,14 @@ class NotesScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                context
-                                    .read<TodoBloc>()
-                                    .todos
-                                    .elementAt(index)
-                                    .isi,
+                                state.todos.elementAt(index).isi,
                                 style: ThemeText.captionStyle,
                                 maxLines: index + 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                simpleDate(context
-                                    .read<TodoBloc>()
-                                    .todos
+                                simpleDate(state.todos
                                     .elementAt(index)
                                     .reminder
                                     .toIso8601String()),

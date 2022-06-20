@@ -12,9 +12,9 @@ class TodosInitial extends TodoState {}
 class TodosLoading extends TodoState {}
 
 class TodosLoaded extends TodoState {
-  final List<Todo>? todos;
+  final List<Todo> todos;
 
-  const TodosLoaded({this.todos});
+  const TodosLoaded({required this.todos});
 }
 
 class TodosError extends TodoState {

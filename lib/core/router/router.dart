@@ -19,7 +19,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => LoginScreen(),
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: '/forgot-password',
@@ -35,7 +35,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/note/new',
-        builder: (context, state) => NoteDetailScreen(isNew: true),
+        builder: (context, state) => const NoteDetailScreen(isNew: true),
       ),
       GoRoute(
         path: '/note/:id',
